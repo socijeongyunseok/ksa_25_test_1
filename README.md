@@ -104,14 +104,12 @@ print("✅  Setup complete.  Repository =", REPO_DIR)```
 ### 2. 파이프라인 실행
 
 ```bash
-!python run_pipeline.py n1.csv n2.csv
+!python run_pipeline.py --data data/n1.csv data/n2.csv
 ```
 
 ### 혹은 다양한 값을 넣어 실험
 ```bash
-!python experiments.py \
-  --data data/n1.csv data/n2.csv \
-  --grid_results exports/grid_results.csv
+!python experiments.py --data data/n1.csv data/n2.csv
 ```
 
 ***

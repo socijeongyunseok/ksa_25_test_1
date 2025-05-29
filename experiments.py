@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-experiments.py ─────────────────────────────────────────────────────────────
+experiments.py  ──────────────────────────────────────────────────────────────
 BERTopic + UMAP + HDBSCAN 하이퍼파라미터 그리드 탐색 스크립트
 Usage:
     python experiments.py \
@@ -35,16 +35,18 @@ GRID = dict(
 
 # Vectorizer 기본 설정
 VECTORIZER_KWARGS = dict(
-    min_df=1,
-    max_df=0.95,
+    min_df=1,         # 문서 수가 적을 수 있어 1로 설정
+    max_df=0.95,      # 문서의 95% 초과 빈어만 제거
     ngram_range=(1, 1),
     stop_words=None,
 )
 
+# 임베딩 모델 이름, 랜덤 시드, 결과 디렉토리
 EMBED_MODEL_NAME = "paraphrase-multilingual-MiniLM-L12-v2"
 RANDOM_STATE = 42
 EXPORTS_DIR = "exports"
 
+# ────────────────────────────────────────────────────────────────────────────
 def ensure_dir(path: str):
     os.makedirs(path, exist_ok=True)
 
@@ -52,8 +54,10 @@ def load_texts(csv_paths):
     frames = []
     for p in csv_paths:
         df = pd.read_csv(p)
+        # '수정결과' 필터링
         if 'Modification' in df.columns:
             df = df[df['Modification'] == '수정결과']
+        # 'Script' 열 추출
         if 'Script' in df.columns:
             frames.append(df['Script'].dropna())
         else:
@@ -68,15 +72,18 @@ def compute_silhouette(embeddings, labels):
     return silhouette_score(embeddings[mask], labels[mask])
 
 def compute_coherence(topics_dict, texts):
+    # 토큰화 및 gensim 준비
     tokenized = [doc.split() for doc in texts]
     id2word = Dictionary(tokenized)
     corpus = [id2word.doc2bow(tokens) for tokens in tokenized]
+    # 토픽별 상위 단어 리스트 생성
     topic_word_lists = []
     for tid, word_scores in topics_dict.items():
         if tid == -1:
             continue
         words = [w for w, _ in word_scores]
         topic_word_lists.append(words)
+    # coherence 계산
     cm = CoherenceModel(
         topics=topic_word_lists,
         texts=tokenized,
@@ -92,6 +99,7 @@ def iterate_grid():
     return [dict(zip(keys, v)) for v in itertools.product(*vals)]
 
 def run_single(texts, params, _unused):
+    # UMAP 모델
     umap_model = UMAP(
         n_neighbors=params['n_neighbors'],
         n_components=5,
@@ -99,6 +107,7 @@ def run_single(texts, params, _unused):
         metric='cosine',
         random_state=RANDOM_STATE,
     )
+    # HDBSCAN 모델
     hdbscan_model = HDBSCAN(
         min_cluster_size=params['min_cluster_size'],
         min_samples=params['min_samples'],
@@ -106,7 +115,10 @@ def run_single(texts, params, _unused):
         cluster_selection_method='eom',
         prediction_data=True,
     )
+    # Vectorizer
     vectorizer_model = CountVectorizer(**VECTORIZER_KWARGS)
+
+    # BERTopic 모델
     topic_model = BERTopic(
         embedding_model=EMBED_MODEL_NAME,
         umap_model=umap_model,
@@ -116,11 +128,20 @@ def run_single(texts, params, _unused):
         min_topic_size=30,
         verbose=False,
     )
+
+    # 학습
     topics, _probs = topic_model.fit_transform(texts)
+
+    # 실루엣 계산
     emb = topic_model.umap_model.embedding_
-    sil = compute_silhouette(emb, np.array(topics))
+    labels = np.array(topics)
+    sil = compute_silhouette(emb, labels)
+
+    # 코히런스 계산
     topics_dict = topic_model.get_topics()
     coh = compute_coherence(topics_dict, texts)
+
+    # 클러스터 수
     k = len({t for t in topics if t != -1})
     return coh, sil, k
 
@@ -140,8 +161,11 @@ def main(args):
         if coh > best['coherence'] or (np.isclose(coh, best['coherence']) and sil > best['silhouette']):
             best.update(row)
 
+    # 결과 저장
     df = pd.DataFrame(out_rows)
     df.to_csv(args.grid_results, index=False, encoding='utf-8-sig')
+
+    # 최고 결과 출력
     print("\n🏆 BEST")
     print(f"coh={best['coherence']:.3f}, sil={best['silhouette']:.3f}, k={best['n_clusters']}")
     print("params:", {k: best[k] for k in GRID.keys()})

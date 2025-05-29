@@ -16,27 +16,37 @@ from sklearn.feature_extraction.text import CountVectorizer
 # ----------------------------------------------------------------------
 # 1) UMAP & HDBSCAN 파라미터 튜닝
 HDBSCAN_KWARGS = dict(
-    min_cluster_size=20,   # 5  → 20
-    min_samples=10,        # 2  → 10
-    prediction_data=True,        # ← 반드시 추가
-    cluster_selection_epsilon=0.0,   # 확실히 떨어진 점만 새 클러스터
+    min_cluster_size=35,     # 20 → 35
+    min_samples=10,          # 그대로
     metric="euclidean",
+    cluster_selection_method="eom",
+    prediction_data=True,
 )
-
 
 UMAP_KWARGS = dict(
     n_neighbors=15,
     n_components=5,
-    min_dist=0.05,
+    min_dist=0.10,
     metric="cosine",
-    random_state=42
+    random_state=42,
 )
 
+# ----------------------------------------------------------------------
+# 2) CountVectorizer 파라미터 (VEC_KWARGS)
 VEC_KWARGS = dict(
-    min_df=5,
-    ngram_range=(1, 1),
-    stop_words=None
+    min_df=3,                # 5 → 3
+    max_df=0.8,              # 새로 추가
+    ngram_range=(1, 3),      # (1,1) → (1,3)
+    stop_words=[
+        "그리고","그러나","그러므로",
+        "안녕","안녕하세요","안녕하십니까",
+        "인사","인사드리겠습니다","인사드립니다",
+        "투쟁으로","차빼라","열어라",
+        "합니다","입니다","니까","이","저","그",
+        "감사","고맙"
+    ],
 )
+
 
 MIN_TOPIC_SIZE = 30
 TOPIC_DIVERSITY = 0.30

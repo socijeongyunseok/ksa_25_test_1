@@ -62,7 +62,13 @@ def run(posts_csv: str, comments_csv: str):
 
     # 4) 토픽 모델
     topic_model, topics, probs = build_topic_model(texts)
-
+    # ─── 여기서 embeddings와 labels를 정의 ───
+    # UMAP 모델이 학습한 임베딩 (n_docs × n_components)
+    embeddings = topic_model.umap_model.embedding_
+    # 클러스터 레이블(토픽 번호)
+    labels = topics
+    # ──────────────────────────────────────
+    
     # 5) 그래프
     G = build_cooccurrence_graph(texts, topics)
     nx.write_gexf(G, EXPORT_DIR / "graph_ppmi.gexf")

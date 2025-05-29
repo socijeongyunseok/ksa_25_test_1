@@ -76,7 +76,8 @@ def run(posts_csv: str, comments_csv: str):
     # 6) 지표
     metrics = {
         **graph_metrics(G),
-        **cluster_metrics(np.array(topics)),
+        **cluster_metrics(labels),
+        # **cluster_metrics(np.array(topics)),
         "coherence": float(compute_coherence(topic_model, texts)),
     }
     clarity_df = compute_clarity(probs)

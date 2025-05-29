@@ -10,6 +10,9 @@ from pathlib import Path
 from config import DATA_DIR
 from pipeline import run
 
+# 내가 이런 짓까지 할 줄은 몰랐다
+from experiments import compute_silhouette
+
 def find_csvs():
     # data/ 폴더에서 n1.csv, n2.csv 자동 검색
     p = Path(DATA_DIR)

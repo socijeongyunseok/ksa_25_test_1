@@ -67,6 +67,8 @@ def run(posts_csv: str, comments_csv: str):
     embeddings = topic_model.umap_model.embedding_
     # 클러스터 레이블(토픽 번호)
     labels = topics
+    import numpy as np
+    labels = np.array(labels)
     # ──────────────────────────────────────
     
     # 5) 그래프

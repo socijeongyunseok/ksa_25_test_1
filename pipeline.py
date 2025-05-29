@@ -82,7 +82,7 @@ def run(posts_csv: str, comments_csv: str):
     df_posts.to_csv(EXPORT_DIR / "pipeline_output.csv", index=False)
     topic_model.get_topic_info().to_csv(EXPORT_DIR / "topic_summary.csv", index=False)
 
-    return df, metrics, embeddings, labels
+    return df_posts, metrics, embeddings, labels
     # return df_posts, metrics
 
 

@@ -13,6 +13,7 @@ from pipeline import run
 # 내가 이런 짓까지 할 줄은 몰랐다
 from experiments import compute_silhouette
 
+
 def find_csvs():
     # data/ 폴더에서 n1.csv, n2.csv 자동 검색
     p = Path(DATA_DIR)
@@ -26,7 +27,18 @@ if __name__ == "__main__":
     # 인자 없이 자동 파일 검색
     csv1, csv2 = find_csvs()
     print(f"▶ 로드할 파일: data/{csv1}, data/{csv2}")
-    df, metrics = run(csv1, csv2)
+    # df, metrics = run(csv1, csv2)
+    
+    # run이 (df, metrics, embeddings, labels) 네 개를 반환하도록 수정 필요
+    df, metrics, embeddings, labels = run(csv1, csv2)
+
+    # experiments.py 방식으로 silhouette 재계산
+    try:
+        silh = compute_silhouette(embeddings, labels)
+    except Exception:
+        silh = float("nan")
+    metrics["silhouette"] = silh
+    
     pprint.pprint(metrics, compact=True)
     # 결과 저장
     out_path = Path.cwd() / "pipeline_output.csv"

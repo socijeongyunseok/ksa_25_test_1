@@ -33,8 +33,10 @@ ksa_25_test_1/
 ├─ graph_build.py          # PPMI 네트워크 생성
 ├─ metrics.py              # 군집·그래프 메트릭 계산
 ├─ visualize.py            # CSV/GEXF 내보내기
+├─ experiments.py          # 다양한 수치 실험
 ├─ pipeline.py             # 전체 파이프라인 조합
 └─ run_pipeline.py         # 엔트리포인트(자동 파일 검색)
+
 ```
 
 ***

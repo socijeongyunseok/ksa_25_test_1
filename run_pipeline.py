@@ -32,7 +32,7 @@ def run_single(csv_name: str, nr_bins: int):
                                         df["timestamp"].tolist(),
                                         nr_bins=nr_bins)
     # silhouette 계산
-    embeds = model._embedding_model.encode(df["text"].tolist(), show_progress_bar=False)
+    embeds = model.embedding_model.encode(df["text"].tolist(), show_progress_bar=False)
     labels = model.get_document_info(df["text"].tolist())['Topic'].to_numpy()
     try:
         silh = compute_silhouette(embeds, labels)

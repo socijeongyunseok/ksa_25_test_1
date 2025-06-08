@@ -25,7 +25,40 @@ def find_csvs():
     return [c.name for c in csvs[:2]]  # 첫 두 개 사용
 
 # ── 단일 CSV 실행 헬퍼 ─────────────────────────────────────────
+def run_single(csv_name: str, nr_bins: int):
+    """단일 CSV → TOT DF, 메트릭, 학습된 BERTopic 모델"""
+    df = load_dialog_csv(csv_name)
+    texts = df["text"].tolist()
 
+    # 1) 시계열 토픽 모델
+    model, tot = build_topic_timeseries(texts, df["timestamp"].tolist(), nr_bins=nr_bins)
+
+    # 2) 임베딩 추출 (버전 호환)
+    try:
+        embeds = model.embedding_model.transform(texts)          # v0.16+ BaseEmbedder
+    except AttributeError:
+        try:
+            embeds = model.embedding_model.embed(texts)          # 일부 Backend
+        except AttributeError:
+            embeds = model.embedding_model.encode(texts)         # 오래된 SentenceTransformerBackend
+
+    # 3) 실루엣 계산
+    labels = model.get_document_info(texts)["Topic"].to_numpy()
+    try:
+        silh = compute_silhouette(embeds, labels)
+    except Exception:
+        silh = float("nan")
+
+    metrics = {
+        "silhouette": silh,
+        "n_topics": len(set(labels)) - (-1 in labels)
+    }
+
+    tot["source"] = csv_name
+    return tot, metrics, model
+
+
+"""
 def run_single(csv_name: str, nr_bins: int):
     df = load_dialog_csv(csv_name)
     model, tot = build_topic_timeseries(df["text"].tolist(),
@@ -41,7 +74,7 @@ def run_single(csv_name: str, nr_bins: int):
     metrics = {"silhouette": silh, "n_topics": len(set(labels))-(-1 in labels)}
     tot["source"] = csv_name
     return tot, metrics, model
-
+"""
 # ── GEXF 네트워크 빌더 ─────────────────────────────────────────
 
 def build_gexf(topic_model: "BERTopic", export_dir: Path,

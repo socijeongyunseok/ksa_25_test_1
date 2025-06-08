@@ -127,6 +127,4 @@ if __name__ == "__main__":
                prefix="global")
 
     pprint.pprint(metrics_dict, compact=True)
-    print(f"
-✓ 파이프라인 완료 — TOT: {tot_out} 
-  GEXF → {export_dir}/*.gexf 확인")
+    print(f" ✓ 파이프라인 완료 — TOT: {tot_out}    GEXF → {export_dir}/*.gexf 확인")

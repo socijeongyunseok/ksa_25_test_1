@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-
+# ============================================================
 # data_load.py
+# ------------------------------------------------------------
 import pandas as pd
 from pathlib import Path
 from config import DATA_DIR
 
-def load_dialog_csv(fname1: str, fname2: str) -> pd.DataFrame:
-    """
-    두 CSV(n1.csv, n2.csv) → 대사 스크립트 DataFrame 반환
-    필요한 열: Script(본문), Speaker, Modification
-    """
-    f1, f2 = DATA_DIR / fname1, DATA_DIR / fname2
-    df = pd.concat([pd.read_csv(f1), pd.read_csv(f2)], ignore_index=True)
-    df = df[df['Modification'] == '수정결과'].dropna(subset=['Speaker'])
-    df.reset_index(drop=True, inplace=True)
-    return df
+def load_dialog_csv(*fnames: str) -> pd.DataFrame:
+    """하나 또는 여러 CSV를 읽어 (timestamp, text) DataFrame 반환."""
+    frames = [pd.read_csv(DATA_DIR / f) for f in fnames]
+    df = pd.concat(frames, ignore_index=True)
+    # 오직 '수정결과'만 필터링
+    df = df[df["Modification"] == "수정결과"].copy()
+    df["timestamp"] = df.index.astype(int)              # 시계열 인덱스
+    df["text"] = df["Script"].astype(str).str.strip()  # 본문 텍스트
+    return df[["timestamp", "text"]]
